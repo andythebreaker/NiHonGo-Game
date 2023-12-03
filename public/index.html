@@ -166,9 +166,9 @@
                                 }
 
                                 Swal.fire({
-                                    title: `${g1}年${(document.getElementsByTagName('th')[parseInt(g2,10)]).innerText}`,
+                                    title: `${g1}年${(document.getElementsByTagName('th')[parseInt(g2, 10)]).innerText}`,
                                     html: `<table><tr><td>${xz}</td></tr></table>`,
-                                footer:`<button onclick="window.open('/deleteUploadID/${canvas.id}', '_blank');">DEL ALL !!!</button>`
+                                    footer: `<button onclick="window.open('/deleteUploadID/${canvas.id}', '_blank');">DEL ALL !!!</button>`
                                 });
                             })
                             .catch(error => {
@@ -243,16 +243,40 @@
                             });
                     }
 
-                    if (!noc) { cell.appendChild(canvas); }
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = 'red';
-                    ctx.fillRect(0, 0, 100, 100);
-
+                    if (!noc) {
+                        cell.appendChild(canvas);
+                        const ctx = canvas.getContext('2d');
+                        //ctx.fillStyle = color red if fetch "/uploadID/:uploadID" 404, else green
+                        ctx.fillStyle = 'red';
+                        ctx.fillRect(0, 0, 100, 100);
+                    }
                     row.appendChild(cell);
                     i++;
                 });
                 tbody.appendChild(row);
             });
+            //go through all canvas use call back function
+            const canvasList = document.querySelectorAll('canvas');
+            canvasList.forEach(canvas => {
+                //app.get('/uploadID/:uploadID'
+                fetch(`/uploadID/${canvas.id}`, {
+                    method: 'GET',
+                })
+                    .then(response => response.text())
+                    .then(result => {
+                        //ctx.fillStyle = color red if fetch "/uploadID/:uploadID" 404, else green
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = result==='uploadID exists'?'green':'red';
+                        ctx.fillRect(0, 0, 100, 100);
+                    })
+                    .catch(error => {
+                        Toastify({
+                            text: error,
+                            duration: 3000
+                        }).showToast();
+                    });
+            })
+
         });//document.addEventListener('DOMContentLoaded', () => {<<<<<<<
 
 

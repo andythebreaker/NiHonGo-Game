@@ -103,6 +103,18 @@ app.get('/deleteUploadID/:uploadID', (req, res) => {
   res.send(`please refresh the page to see the changes`);
 });
 
+//uploadID exists
+app.get('/uploadID/:uploadID', (req, res) => {
+  const uploadID = req.params.uploadID;
+  // Find the file names in the database that match the uploadID
+  const matchingUploads = db.get('uploads').filter({ uploadID }).value();
+
+  if (matchingUploads.length === 0) {
+    return res.status(404).send('File not found.');
+  }
+  res.send(`uploadID exists`);
+});
+
 
 // Start the server
 app.listen(port, () => {
