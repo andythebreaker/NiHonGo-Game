@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Upload</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th,
+        td {
+            padding: 1px;
+            text-align: center;
+        }
+
+        .drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 2px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .highlight {
+            border-color: #007BFF;
+        }
+    </style>
+</head>
+
+<body>
+    <table id="csvTable">
+        <thead>
+            <tr>
+                <th>年份</th>
+                <th>甲班題目</th>
+                <th>甲班解答</th>
+                <th>乙班題目</th>
+                <th>乙班解答</th>
+                <th>丙班題目</th>
+                <th>丙班解答</th>
+                <th>其他</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- JavaScript will populate rows here -->
+        </tbody>
+    </table>
+
+    <script>function removeSpacesAndTabs(inputString) {
+            var result = inputString.replace(/[\s\t]/g, '');
+            return result;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const csvData = `
+      2006,,,,,,,
+      2007,,,,,,,
+      2008,,,,,,,
+      2009,,,,,,,
+      2010,,,,,,,
+      2011,,,,,,,
+      2012,,,,,,,
+      2013,,,,,,,
+      2014,,,,,,,
+      2015,,,,,,,
+      2016,,,,,,,
+      2017,,,,,,,
+      2018,,,,,,,
+      2019,,,,,,,
+      2020,,,,,,,
+      2021,,,,,,,
+      2022,,,,,,,
+      2023,,,,,,,
+      2024,,,,,,,
+    `;
+
+            // Split CSV data into rows and columns
+            const rows = csvData.trim().split('\n').map(row => row.split(','));
+
+            // Get the table body element
+            const tbody = document.querySelector('#csvTable tbody');
+
+            // Populate the table with data
+            rows.forEach(rowData => {
+                const row = document.createElement('tr');
+                var hole1stCELL = '';
+                var i = 0;
+                rowData.forEach(cellData => {
+                    var noc = true;
+                    if (hole1stCELL === '') {
+                        hole1stCELL = cellData;
+                    } else {
+                        noc = false;
+                    }
+                    const cell = document.createElement('td');
+                    cell.classList.add(hole1stCELL ? `${removeSpacesAndTabs(hole1stCELL)}_column${i}` : 'year');
+                    cell.textContent = cellData;
+                    //create drop canvas in every cell
+                    const canvas = document.createElement('canvas');
+                    canvas.classList.add('drop-area');
+                    canvas.id = hole1stCELL ? `${removeSpacesAndTabs(hole1stCELL)}_column${i}` : 'year';
+                    //width = viewport * 80% / table column count
+                    canvas.width = window.innerWidth * 0.8 / 8;
+                    //height = canvas width
+                    canvas.height = canvas.width;
+
+                    window.addEventListener('resize', () => {
+                        //find all canvas and resize them
+                        const canvasList = document.querySelectorAll('canvas');
+                        canvasList.forEach(canvas => {
+                            canvas.width = window.innerWidth * 0.8 / 8;
+                            canvas.height = canvas.width;
+                        });
+                    });
+
+                    canvas.addEventListener('drop', handleDrop);
+
+                    //onclick
+                    canvas.addEventListener('click', () => {
+                        //app.get('/find/:uploadID'                        
+                        fetch(`/find/${canvas.id}`, {
+                            method: 'GET',
+                        })
+                            .then(response => response.json())
+                            .then(result => {
+                                const decodedString = result.fileNames.map((x) => new TextDecoder('utf-8').decode(new Uint8Array([...atob(x.n)].map(char => char.charCodeAt(0)))));
+                                const xi = result.fileNames.map(x => x.i);
+                                var xz = '';
+                                for (let zk = 0; zk < xi.length; zk++) {
+                                    xz += decodedString[zk];
+                                    xz += `</a></td><td><button onclick="window.open('/download/${xi[zk]}', '_blank');">go!</button></td></tr><tr><td>`;
+                                }
+                                const regex = /(\d{4})_column(\d+)/gm;
+                                let m;
+                                var str = canvas.id;
+                                while ((m = regex.exec(str)) !== null) {
+                                    // This is necessary to avoid infinite loops with zero-width matches
+                                    if (m.index === regex.lastIndex) {
+                                        regex.lastIndex++;
+                                    }
+                                    var g1 = '';
+                                    var g2 = '';
+                                    // The result can be accessed through the `m`-variable.
+                                    m.forEach((match, groupIndex) => {
+                                        if (groupIndex === 1) {
+                                            g1 = match;
+                                        }
+                                        if (groupIndex === 2) {
+                                            g2 = match;
+                                        }
+                                    });
+                                }
+
+                                Swal.fire({
+                                    title: `${g1}年${(document.getElementsByTagName('th')[parseInt(g2,10)]).innerText}`,
+                                    html: `<table><tr><td>${xz}</td></tr></table>`
+                                });
+                            })
+                            .catch(error => {
+                                Toastify({
+                                    text: error,
+                                    duration: 3000
+                                }).showToast();
+                            });
+                    });
+
+                    function handleDrop(event) {
+                        const dt = event.dataTransfer;
+                        const files = dt.files;
+                        handleFiles(files, event.target ? event.target.id : "error_id_not_found");
+                    };
+                    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                        canvas.addEventListener(eventName, preventDefaults, false);
+                    });
+
+                    function preventDefaults(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+
+                    ['dragenter', 'dragover'].forEach(eventName => {
+                        canvas.addEventListener(eventName, highlight, false);
+                    });
+
+                    ['dragleave', 'drop'].forEach(eventName => {
+                        canvas.addEventListener(eventName, unhighlight, false);
+                    });
+
+                    function highlight() {
+                        canvas.classList.add('highlight');
+                    }
+
+                    function unhighlight() {
+                        canvas.classList.remove('highlight');
+                    }
+
+                    function handleFiles(files, text_id) {
+                        const filesArray = Array.from(files);
+                        filesArray.forEach(file => uploadFile(file, text_id));
+                    }
+
+                    function uploadFile(file, text_id) {
+                        const formData = new FormData();
+
+                        // Append current date and time to the form data
+                        const currentDate = new Date();
+                        formData.append('uploadID', text_id);
+
+                        // Append the file to the form data
+                        formData.append('files', file);
+
+                        fetch('/upload', {
+                            method: 'POST',
+                            body: formData,
+                        })
+                            .then(response => response.text())
+                            .then(result => {
+                                Toastify({
+                                    text: result,
+                                    duration: 3000
+                                }).showToast();
+                            })
+                            .catch(error => {
+                                Toastify({
+                                    text: error,
+                                    duration: 3000
+                                }).showToast();
+                            });
+                    }
+
+                    if (!noc) { cell.appendChild(canvas); }
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(0, 0, 100, 100);
+
+                    row.appendChild(cell);
+                    i++;
+                });
+                tbody.appendChild(row);
+            });
+        });//document.addEventListener('DOMContentLoaded', () => {<<<<<<<
+
+
+
+
+    </script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
+</body>
+
+</html>
