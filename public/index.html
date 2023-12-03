@@ -167,7 +167,8 @@
 
                                 Swal.fire({
                                     title: `${g1}年${(document.getElementsByTagName('th')[parseInt(g2,10)]).innerText}`,
-                                    html: `<table><tr><td>${xz}</td></tr></table>`
+                                    html: `<table><tr><td>${xz}</td></tr></table>`,
+                                footer:`<button onclick="window.open('/deleteUploadID/${canvas.id}', '_blank');">DEL ALL !!!</button>`
                                 });
                             })
                             .catch(error => {
