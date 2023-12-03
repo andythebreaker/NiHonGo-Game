@@ -81,6 +81,28 @@ app.get('/download/:fileName', (req, res) => {
   res.download(filePath, fileName);
 });
 
+//delete file
+app.get('/delete/:fileName', (req, res) => {
+  const fileName = req.params.fileName;
+  // const filePath = path.join(__dirname, 'uploads', fileName);
+  // fs.unlink(filePath, function (err) {
+  //   if (err) {
+  //     return res.status(404).send('File not found.');
+  //   }
+  //delete from database
+  db.get('uploads').remove({ fileName }).write();
+  res.send(`please refresh the page to see the changes`);
+  // });
+});
+
+//delete uploadID
+app.get('/deleteUploadID/:uploadID', (req, res) => {
+  const uploadID = req.params.uploadID;
+  //delete from database
+  db.get('uploads').remove({ uploadID }).write();
+  res.send(`please refresh the page to see the changes`);
+});
+
 
 // Start the server
 app.listen(port, () => {

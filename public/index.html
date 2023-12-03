@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag and Upload</title>
+    <title>電子學(3)成大考古</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <style>
@@ -139,7 +139,10 @@
                                 var xz = '';
                                 for (let zk = 0; zk < xi.length; zk++) {
                                     xz += decodedString[zk];
-                                    xz += `</a></td><td><button onclick="window.open('/download/${xi[zk]}', '_blank');">go!</button></td></tr><tr><td>`;
+                                    xz += `</a></td>
+                                    <td><button onclick="window.open('/download/${xi[zk]}', '_blank');">go!</button></td>
+                                    <td><button onclick="window.open('/delete/${xi[zk]}', '_blank');">del!</button></td>
+                                    </tr><tr><td>`;
                                 }
                                 const regex = /(\d{4})_column(\d+)/gm;
                                 let m;
