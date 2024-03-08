@@ -1,3 +1,11 @@
-# me3
+# DEMO
 
-郭電子學3考古
+TODO: 
+- fix
+```
+#result {
+            margin-top: 20px;
+        font-size: 18px;
+        height: 50px; /* Add fixed height */
+        overflow: hidden;
+```
