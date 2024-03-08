@@ -11,29 +11,42 @@
         #game-container {
             text-align: center;
             margin-top: 50px;
+            margin: 4%;
+            border: 1px solid #ddd; /* Add border style */
+            border-radius: 5px; /* Optional: Add border radius for a rounded look */
         }
-
+    
+        #question {
+            margin-top: 20px; /* Add top margin to the question element */
+        }
+    
         #answer-options {
             margin-top: 20px;
         }
-
+    
         .answer-btn {
             margin: 5px;
             font-size: 18px;
             padding: 15px 20px;
         }
-
+    
         #result {
             margin-top: 20px;
-            font-size: 18px;
+        font-size: 18px;
+        height: 50px; /* Add fixed height */
+        overflow: hidden; /* Optional: Hide overflow content if it exceeds the fixed height */
+        margin-left: 20px; /* Add left margin */
+            margin-right: 20px; /* Add right margin */
         }
-
+    
         #score {
             margin-top: 10px;
+            margin-left: 20px; /* Add left margin */
+            margin-right: 20px; /* Add right margin */
             font-size: 20px;
             font-weight: bold;
         }
-
+    
         /* Horizontally center the progress bar */
         #progress-bar {
             margin: 10px auto; /* Set margin to auto for horizontal centering */
@@ -43,7 +56,7 @@
             border-radius: 5px;
             overflow: hidden;
         }
-
+    
         #progress-bar-inner {
             height: 20px;
             width: 0;
@@ -52,14 +65,16 @@
             line-height: 20px;
             color: white;
         }
-
+    
         #next-btn {
             margin-top: 20px;
+            margin-bottom: 20px; /* Add bottom margin */
             padding: 15px 20px;
             font-size: 18px;
             cursor: pointer;
         }
     </style>
+    
 </head>
 <body>
     <div id="game-container">
@@ -71,7 +86,7 @@
             <button class="ui button answer-btn" onclick="checkAnswer(3)">D</button>
             <button class="ui button answer-btn" onclick="checkAnswer(4)">E</button>
         </div>
-        <p id="result"></p>
+        <p class="ui negative message" id="result"></p>
         <div id="score" class="ui message">Score: <span id="current-score">0</span>/<span id="total-questions">0</span> (<span id="percentage">0%</span>)</div>
         <div id="progress-bar" class="ui progress">
             <div id="progress-bar-inner" class="bar"></div>
@@ -150,18 +165,28 @@ function shuffleOptions(options) {
             document.getElementById("percentage").textContent = percentage.toFixed(2) + "%";
             updateProgressBar(); // Update the progress bar
         }
+        function displayResultMessage(isCorrect) {
+        var resultElement = document.getElementById('result');
+        resultElement.classList.remove('positive', 'negative'); // Remove existing classes
 
+        if (isCorrect) {
+            resultElement.textContent = 'Correct!';
+            resultElement.classList.add('positive'); // Add positive/success class
+        } else {
+            resultElement.textContent = 'Incorrect!';
+            resultElement.classList.add('negative'); // Add negative/error class
+        }
+    }
 
         function checkAnswer(selectedOption) {
             if (!answered) {
                 const currentQuestion = questions[questionIndex];
-                const resultMessage = selectedOption === currentQuestion.correctAnswerIndex
-                    ? "Correct"
-                    : "Incorrect";
-                document.getElementById("result").textContent = resultMessage;
 
                 if (selectedOption === currentQuestion.correctAnswerIndex) {
                     score++;
+                    displayResultMessage(true);
+                }else{
+                    displayResultMessage(false);
                 }
                 updateScore(); // Update the score display
 
