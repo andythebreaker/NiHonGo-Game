@@ -2,3 +2,10 @@
 
 TODO:
 rm:
+```
+public
+
+uploads
+
+.gitignore
+```
