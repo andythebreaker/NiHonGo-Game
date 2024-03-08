@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NiHonGo Game</title>
+    <!-- Include Semantic UI CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui/dist/semantic.min.css">
+    <style>
+        /* Custom styles */
+        #game-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #answer-options {
+            margin-top: 20px;
+        }
+
+        .answer-btn {
+            margin: 5px;
+            font-size: 18px;
+            padding: 15px 20px;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        #score {
+            margin-top: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* Horizontally center the progress bar */
+        #progress-bar {
+            margin: 10px auto; /* Set margin to auto for horizontal centering */
+            width: 50%;
+            background-color: #ddd;
+            border: 1px solid #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #progress-bar-inner {
+            height: 20px;
+            width: 0;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+
+        #next-btn {
+            margin-top: 20px;
+            padding: 15px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1 id="question">Question</h1>
+        <div id="answer-options" class="ui buttons">
+            <button class="ui button answer-btn" onclick="checkAnswer(0)">A</button>
+            <button class="ui button answer-btn" onclick="checkAnswer(1)">B</button>
+            <button class="ui button answer-btn" onclick="checkAnswer(2)">C</button>
+            <button class="ui button answer-btn" onclick="checkAnswer(3)">D</button>
+            <button class="ui button answer-btn" onclick="checkAnswer(4)">E</button>
+        </div>
+        <p id="result"></p>
+        <div id="score" class="ui message">Score: <span id="current-score">0</span>/<span id="total-questions">0</span> (<span id="percentage">0%</span>)</div>
+        <div id="progress-bar" class="ui progress">
+            <div id="progress-bar-inner" class="bar"></div>
+        </div>
+        <button id="next-btn" class="ui button" onclick="nextQuestion()">NEXT</button>
+    </div>
+
+    <script>
+       
+       let questionIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        const n50a = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
+        const n50ae = "a.i.u.e.o.ka.ki.ku.ke.ko.sa.shi.su.se.so.ta.chi.tsu.te.to.na.ni.nu.ne.no.ha.hi.fu.he.ho.ma.mi.mu.me.mo.ya.yu.yo.ra.ri.ru.re.ro.wa.wo.n";
+        var questions = [];
+
+        for (let i = 0; i < n50a.length; i++) {
+    const allOptions = [...n50ae.split('.')];
+    const correctAnswer = allOptions[i];
+    const options = shuffleOptions(allOptions.filter(option => option !== correctAnswer)).slice(0, 4); // Limit to 4 random options
+    var correctAnswerIndex = Math.floor(Math.random() * 5); // Randomly place correct answer in one of the 5 positions
+    options.splice(correctAnswerIndex, 0, correctAnswer); // Insert correct answer at the random position
+    questions.push({
+        question: n50a[i],
+        correctAnswerIndex,
+        options,
+    });
+}
+function shuffleOptions(options) {
+    // Fisher-Yates (Knuth) Shuffle Algorithm
+    for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+    }
+    return options;
+}
+
+        function initializeGame() {
+            questionIndex = 0;
+            score = 0;
+            answered = false;
+            questions=shuffleOptions(questions);
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const currentQuestion = questions[questionIndex];
+            document.getElementById("question").textContent = currentQuestion.question;
+
+            const answerOptions = document.getElementById("answer-options");
+            answerOptions.innerHTML = "";
+
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement("button");
+                button.className = "answer-btn";
+                button.textContent = option;
+                button.onclick = () => checkAnswer(index);
+                answerOptions.appendChild(button);
+            });
+
+            document.getElementById("result").textContent = "";
+        }
+
+        function updateProgressBar() {
+            const totalQuestions = questions.length;
+            const progress = (questionIndex / totalQuestions) * 100;
+            document.getElementById("progress-bar-inner").style.width = progress + "%";
+        }
+
+        function updateScore() {
+            const totalQuestions = questions.length;
+            const percentage = (score / (questionIndex+1)) * 100;
+            document.getElementById("current-score").textContent = score;
+            document.getElementById("total-questions").textContent = questionIndex+1;
+            document.getElementById("percentage").textContent = percentage.toFixed(2) + "%";
+            updateProgressBar(); // Update the progress bar
+        }
+
+
+        function checkAnswer(selectedOption) {
+            if (!answered) {
+                const currentQuestion = questions[questionIndex];
+                const resultMessage = selectedOption === currentQuestion.correctAnswerIndex
+                    ? "Correct"
+                    : "Incorrect";
+                document.getElementById("result").textContent = resultMessage;
+
+                if (selectedOption === currentQuestion.correctAnswerIndex) {
+                    score++;
+                }
+                updateScore(); // Update the score display
+
+                answered = true;
+            }
+        }
+
+        function nextQuestion() {
+            if (answered) {
+                questionIndex++;
+                if (questionIndex < questions.length) {
+                    answered = false;
+                    showQuestion();
+                } else {
+                    showFinalResult();
+                }
+            }
+        }
+
+        function showFinalResult() {
+            document.getElementById("question").textContent = "Game Over";
+            document.getElementById("answer-options").innerHTML = "";
+            document.getElementById("result").textContent = "Final Score: " + score + "/" + questions.length;
+
+        }
+
+        initializeGame();
+    </script>
+</body>
+</html>
